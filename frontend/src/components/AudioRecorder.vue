@@ -78,8 +78,14 @@ export default {
       try {
         error.value = null
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        
-        mediaRecorder = new MediaRecorder(stream)
+
+        // WebM形式で録音（ブラウザがサポートしている場合）
+        const options = { mimeType: 'audio/webm' }
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          // WebMがサポートされていない場合はデフォルト形式を使用
+          delete options.mimeType
+        }
+        mediaRecorder = new MediaRecorder(stream, options)
         audioChunks = []
 
         mediaRecorder.ondataavailable = (event) => {
@@ -89,14 +95,15 @@ export default {
         }
 
         mediaRecorder.onstop = () => {
-          const blob = new Blob(audioChunks, { type: 'audio/wav' })
+          // WebM形式のBlobを作成
+          const blob = new Blob(audioChunks, { type: 'audio/webm' })
           recordedBlob.value = blob
           recordingDuration.value = recordingTime.value
           recordingTime.value = 0
-          
+
           // ストリームを停止
           stream.getTracks().forEach(track => track.stop())
-          
+
           // イベントを発行
           emit('recording-complete', blob)
         }

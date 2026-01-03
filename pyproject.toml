@@ -16,6 +16,7 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "python-multipart>=0.0.6",
+    "pydub>=0.25.1",
 ]
 
 [tool.uv.sources]

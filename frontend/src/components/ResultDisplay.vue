@@ -1,7 +1,7 @@
 <template>
   <div class="result-display" v-if="result">
     <h3>評価結果</h3>
-    
+
     <div class="result-section">
       <h4>📝 文字起こし</h4>
       <div class="result-box">
@@ -16,8 +16,8 @@
           <span class="accuracy-value">{{ result.accuracy.toFixed(1) }}%</span>
         </div>
         <div class="accuracy-bar">
-          <div 
-            class="accuracy-fill" 
+          <div
+            class="accuracy-fill"
             :style="{ width: `${result.accuracy}%` }"
             :class="accuracyClass"
           ></div>

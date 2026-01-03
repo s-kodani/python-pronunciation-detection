@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import AudioRecorder from './components/AudioRecorder.vue'
 import ResultDisplay from './components/ResultDisplay.vue'
 import AudioPlayer from './components/AudioPlayer.vue'
@@ -85,6 +85,10 @@ export default {
     })
 
     const handleRecordingComplete = (blob) => {
+      // 以前の合成音声URLを解放
+      if (synthesizedAudioUrl.value) {
+        URL.revokeObjectURL(synthesizedAudioUrl.value)
+      }
       recordedBlob.value = blob
       evaluationResult.value = null
       evaluationError.value = null
@@ -102,9 +106,9 @@ export default {
       evaluationResult.value = null
 
       try {
-        // BlobをFileオブジェクトに変換
-        const audioFile = new File([recordedBlob.value], 'recording.wav', {
-          type: 'audio/wav',
+        // BlobをFileオブジェクトに変換（WebM形式のまま）
+        const audioFile = new File([recordedBlob.value], 'recording.webm', {
+          type: 'audio/webm',
         })
 
         // 発音評価を実行
@@ -114,10 +118,12 @@ export default {
         // 音声合成を実行（オプション）
         if (result.transcribed_text) {
           try {
-            const ttsResult = await synthesizeSpeech(result.transcribed_text, audioFile)
-            // 実際の実装では、生成された音声ファイルを取得する必要があります
-            // ここでは簡略化のため、合成音声のURLは設定しません
-            console.log('Speech synthesis completed:', ttsResult)
+            // 音声合成を実行（Blobを直接取得）
+            const audioBlob = await synthesizeSpeech(result.transcribed_text, audioFile)
+            console.log('Speech synthesis completed')
+
+            // 生成された音声をURLに変換
+            synthesizedAudioUrl.value = URL.createObjectURL(audioBlob)
           } catch (ttsError) {
             console.warn('Speech synthesis failed:', ttsError)
             // 音声合成の失敗は評価結果に影響しない
@@ -133,6 +139,16 @@ export default {
 
     onMounted(() => {
       console.log('Pronunciation Detection System initialized')
+    })
+
+    onUnmounted(() => {
+      // クリーンアップ: オブジェクトURLを解放
+      if (synthesizedAudioUrl.value) {
+        URL.revokeObjectURL(synthesizedAudioUrl.value)
+      }
+      if (recordedBlob.value) {
+        URL.revokeObjectURL(recordedAudioUrl.value)
+      }
     })
 
     return {

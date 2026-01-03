@@ -80,7 +80,7 @@ export async function evaluatePronunciation(audioFile, modelName = 'base', langu
  * 音声合成
  * @param {string} text - 音声合成するテキスト
  * @param {File} speakerFile - 話者情報を含む音声ファイル（オプション）
- * @returns {Promise<{output_path: string}>}
+ * @returns {Promise<Blob>} 生成された音声ファイルのBlob
  */
 export async function synthesizeSpeech(text, speakerFile = null) {
   try {
@@ -94,6 +94,7 @@ export async function synthesizeSpeech(text, speakerFile = null) {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      responseType: 'blob',
     })
     return response.data
   } catch (error) {
