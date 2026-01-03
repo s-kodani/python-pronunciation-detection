@@ -3,6 +3,7 @@
         "allosaurus",
         "phonemize",
         "phonemizer",
-        "pyaudio"
+        "pyaudio",
+        "pyttsx3"
     ]
 }
