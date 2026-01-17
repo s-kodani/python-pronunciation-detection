@@ -3,7 +3,7 @@ APIルート定義
 """
 import os
 import tempfile
-from fastapi import APIRouter, HTTPException, Form, Depends, Query
+from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import FileResponse, StreamingResponse
 from typing import Optional, Tuple, Annotated
 
@@ -36,8 +36,8 @@ async def health_check():
 @router.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio_endpoint(
     audio_files: Annotated[Tuple[str, str], Depends(process_uploaded_audio)],
-    model_name: str = Query("base", description="Whisperモデル名"),
-    language: str = Query("en", description="言語コード"),
+    model_name: str = Form("base", description="Whisperモデル名"),
+    language: str = Form("en", description="言語コード"),
 ):
     """
     音声ファイルを文字起こしする
@@ -66,8 +66,8 @@ async def transcribe_audio_endpoint(
 @router.post("/evaluate", response_model=EvaluationResponse)
 async def evaluate_pronunciation(
     audio_files: Annotated[Tuple[str, str], Depends(process_uploaded_audio)],
-    model_name: str = Query("base", description="Whisperモデル名"),
-    language: str = Query("en", description="言語コード"),
+    model_name: str = Form("base", description="Whisperモデル名"),
+    language: str = Form("en", description="言語コード"),
 ):
     """
     音声ファイルから発音評価を実行する（統合処理）

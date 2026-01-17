@@ -8,7 +8,6 @@ from typing import Generator, Tuple, Optional
 from fastapi import UploadFile, HTTPException, File
 
 from ..services.audio import convert_to_wav, get_file_extension
-from ..utils.file_manager import temporary_file_pair
 from ..utils.exceptions import AudioConversionError
 from ..core.logging import get_logger
 
@@ -32,6 +31,7 @@ async def process_uploaded_audio(
     """
     temp_file_path: str | None = None
     converted_file_path: str | None = None
+    actual_converted_path: str | None = None
 
     try:
         # 元のファイル形式を保持して一時ファイルに保存
@@ -46,7 +46,8 @@ async def process_uploaded_audio(
             converted_file_path = wav_file.name
 
         try:
-            convert_to_wav(temp_file_path, converted_file_path)
+            # convert_to_wavの戻り値を使用（WAVファイルの場合はinput_pathを返す）
+            actual_converted_path = convert_to_wav(temp_file_path, converted_file_path)
         except AudioConversionError as e:
             logger.error(f"Audio conversion failed: {e}")
             raise HTTPException(
@@ -54,7 +55,9 @@ async def process_uploaded_audio(
                 detail=f"Audio conversion failed: {str(e)}"
             ) from e
 
-        yield (temp_file_path, converted_file_path)
+        # 実際に使用されたファイルパスを返す
+        # WAVファイルの場合はinput_pathが返されるため、converted_file_pathは空ファイルになる
+        yield (temp_file_path, actual_converted_path)
 
     except Exception as e:
         logger.error(f"Error processing uploaded audio: {str(e)}")
@@ -63,17 +66,25 @@ async def process_uploaded_audio(
             detail=f"Failed to process audio file: {str(e)}"
         ) from e
     finally:
-        # 一時ファイルを削除
-        if temp_file_path and os.path.exists(temp_file_path):
-            try:
-                os.unlink(temp_file_path)
-            except OSError as e:
-                logger.warning(f"Failed to delete temporary file {temp_file_path}: {e}")
-        if converted_file_path and os.path.exists(converted_file_path):
-            try:
-                os.unlink(converted_file_path)
-            except OSError as e:
-                logger.warning(f"Failed to delete temporary file {converted_file_path}: {e}")
+        # 削除対象のファイルを収集（重複を避ける）
+        files_to_delete = set()
+
+        # temp_file_pathを削除対象に追加
+        if temp_file_path:
+            files_to_delete.add(temp_file_path)
+
+        # converted_file_pathを削除対象に追加（実際に使用された場合のみ）
+        # WAVファイルの場合は空ファイルなので削除しない
+        if converted_file_path and actual_converted_path == converted_file_path:
+            files_to_delete.add(converted_file_path)
+
+        # 収集したファイルを削除
+        for file_path in files_to_delete:
+            if file_path and os.path.exists(file_path):
+                try:
+                    os.unlink(file_path)
+                except OSError as e:
+                    logger.warning(f"Failed to delete temporary file {file_path}: {e}")
 
 
 async def process_speaker_audio(
@@ -97,6 +108,7 @@ async def process_speaker_audio(
 
     temp_speaker_path: str | None = None
     temp_speaker_wav_path: str | None = None
+    actual_speaker_wav_path: str | None = None
 
     try:
         # アップロードされたファイルを一時ファイルに保存
@@ -111,7 +123,8 @@ async def process_speaker_audio(
             temp_speaker_wav_path = wav_file.name
 
         try:
-            convert_to_wav(temp_speaker_path, temp_speaker_wav_path)
+            # convert_to_wavの戻り値を使用（WAVファイルの場合はinput_pathを返す）
+            actual_speaker_wav_path = convert_to_wav(temp_speaker_path, temp_speaker_wav_path)
         except AudioConversionError as e:
             logger.error(f"Speaker audio conversion failed: {e}")
             raise HTTPException(
@@ -119,7 +132,7 @@ async def process_speaker_audio(
                 detail=f"Speaker audio conversion failed: {str(e)}"
             ) from e
 
-        yield temp_speaker_wav_path
+        yield actual_speaker_wav_path
 
     except HTTPException:
         raise
@@ -130,14 +143,22 @@ async def process_speaker_audio(
             detail=f"Failed to process speaker audio file: {str(e)}"
         ) from e
     finally:
-        # 一時ファイルを削除
-        if temp_speaker_path and os.path.exists(temp_speaker_path):
-            try:
-                os.unlink(temp_speaker_path)
-            except OSError as e:
-                logger.warning(f"Failed to delete temporary file {temp_speaker_path}: {e}")
-        if temp_speaker_wav_path and os.path.exists(temp_speaker_wav_path):
-            try:
-                os.unlink(temp_speaker_wav_path)
-            except OSError as e:
-                logger.warning(f"Failed to delete temporary file {temp_speaker_wav_path}: {e}")
+        # 削除対象のファイルを収集（重複を避ける）
+        files_to_delete = set()
+
+        # temp_speaker_pathを削除対象に追加
+        if temp_speaker_path:
+            files_to_delete.add(temp_speaker_path)
+
+        # temp_speaker_wav_pathを削除対象に追加（実際に使用された場合のみ）
+        # WAVファイルの場合は空ファイルなので削除しない
+        if temp_speaker_wav_path and actual_speaker_wav_path == temp_speaker_wav_path:
+            files_to_delete.add(temp_speaker_wav_path)
+
+        # 収集したファイルを削除
+        for file_path in files_to_delete:
+            if file_path and os.path.exists(file_path):
+                try:
+                    os.unlink(file_path)
+                except OSError as e:
+                    logger.warning(f"Failed to delete temporary file {file_path}: {e}")
