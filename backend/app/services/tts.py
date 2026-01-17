@@ -3,10 +3,11 @@
 TTSを使用してテキストから音声を生成
 """
 from TTS.api import TTS
-from typing import Optional
-import logging
 
-logger = logging.getLogger(__name__)
+from ..utils.exceptions import TTSError
+from ..core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def synthesize_speech(
@@ -14,7 +15,7 @@ def synthesize_speech(
     speaker_wav: str,
     output_path: str,
     language: str = "en",
-    model_name: str = "tts_models/multilingual/multi-dataset/xtts_v2"
+    model_name: str = "tts_models/multilingual/multi-dataset/your_tts"
 ) -> str:
     """
     テキストと話者情報を使って音声合成し、ファイルに保存する
@@ -24,13 +25,13 @@ def synthesize_speech(
         speaker_wav: 話者情報を含む音声ファイルのパス
         output_path: 出力ファイルのパス
         language: 言語コード（デフォルト: "en"）
-        model_name: TTSモデル名（デフォルト: "xtts_v2"）
+        model_name: TTSモデル名（デフォルト: "your_tts"）
 
     Returns:
         生成された音声ファイルのパス
 
     Raises:
-        Exception: 音声合成処理中にエラーが発生した場合
+        TTSError: 音声合成処理中にエラーが発生した場合
     """
     try:
         logger.info(f"Loading TTS model: {model_name}")
@@ -44,6 +45,11 @@ def synthesize_speech(
         )
         logger.info(f"Speech synthesized and saved to: {output_path}")
         return output_path
+    except TTSError:
+        raise
     except Exception as e:
         logger.error(f"Error during speech synthesis: {str(e)}")
-        raise Exception(f"Speech synthesis failed: {str(e)}") from e
+        raise TTSError(
+            message="Speech synthesis failed",
+            details=str(e)
+        ) from e

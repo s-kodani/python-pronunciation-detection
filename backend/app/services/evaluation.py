@@ -2,9 +2,10 @@
 発音評価サービス
 期待される音素と実際の音素を比較して発音精度を計算
 """
-import logging
+from ..utils.exceptions import EvaluationError
+from ..core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def compare_phonemes(expected: str, actual: str) -> float:
@@ -20,6 +21,7 @@ def compare_phonemes(expected: str, actual: str) -> float:
 
     Raises:
         ValueError: 期待される音素が空の場合
+        EvaluationError: 音素比較処理中にエラーが発生した場合
     """
     if not expected:
         raise ValueError("Expected phonemes cannot be empty")
@@ -31,6 +33,13 @@ def compare_phonemes(expected: str, actual: str) -> float:
         accuracy = (match_count / len(expected)) * 100 if expected else 0.0
         logger.info(f"Pronunciation accuracy: {accuracy:.2f}% (matches: {match_count}/{len(expected)})")
         return round(accuracy, 2)
+    except ValueError:
+        raise
+    except EvaluationError:
+        raise
     except Exception as e:
         logger.error(f"Error during phoneme comparison: {str(e)}")
-        raise Exception(f"Phoneme comparison failed: {str(e)}") from e
+        raise EvaluationError(
+            message="Phoneme comparison failed",
+            details=str(e)
+        ) from e
