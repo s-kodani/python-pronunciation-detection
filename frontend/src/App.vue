@@ -1,11 +1,11 @@
 <template>
-  <div id="app" class="min-h-screen flex flex-col bg-white">
-    <header class="bg-white py-14 px-section">
+  <div id="app" class="min-h-screen flex flex-col bg-primary">
+    <header class="bg-primary py-14 px-section">
       <div class="max-w-[1280px] mx-auto">
-        <h1 class="text-[48px] font-semibold leading-normal text-black tracking-[-0.96px] mb-6">
+        <h1 class="text-[48px] font-semibold leading-normal text-primary tracking-[-0.96px] mb-6">
           発音検出システム
         </h1>
-        <p class="text-[24px] font-normal leading-[1.5] text-black/75">
+        <p class="text-[24px] font-normal leading-[1.5] text-text-secondary">
           AIを活用した発音評価ツール
         </p>
       </div>
@@ -13,18 +13,18 @@
 
     <main class="flex-1 py-12 px-section">
       <div class="max-w-[1280px] mx-auto">
-        <section class="bg-white border border-border rounded-[12px] p-8 mb-8">
-          <h2 class="text-[48px] font-semibold leading-normal text-black tracking-[-0.96px] mb-8">音声録音</h2>
+        <section class="bg-card border border-border rounded-[12px] p-8 mb-8">
+          <h2 class="text-[48px] font-semibold leading-normal text-primary tracking-[-0.96px] mb-8">音声録音</h2>
           <AudioRecorder @recording-complete="handleRecordingComplete" />
         </section>
 
-        <section class="bg-white border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
-          <h2 class="text-[48px] font-semibold leading-normal text-black tracking-[-0.96px] mb-8">発音評価</h2>
+        <section class="bg-card border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
+          <h2 class="text-[48px] font-semibold leading-normal text-primary tracking-[-0.96px] mb-8">発音評価</h2>
           <div class="mb-6">
             <button
               @click="evaluatePronunciation"
               :disabled="isEvaluating"
-              class="bg-black text-white px-6 py-3 rounded-[8px] text-base font-medium shadow-button hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+              class="bg-button-primary text-white px-6 py-3 rounded-[8px] text-base font-medium shadow-button hover:bg-button-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {{ isEvaluating ? '評価中...' : '発音評価を実行' }}
             </button>
@@ -37,8 +37,8 @@
           />
         </section>
 
-        <section class="bg-white border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
-          <h2 class="text-[48px] font-semibold leading-normal text-black tracking-[-0.96px] mb-8">音声再生</h2>
+        <section class="bg-card border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
+          <h2 class="text-[48px] font-semibold leading-normal text-primary tracking-[-0.96px] mb-8">音声再生</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <AudioPlayer
               :audio-url="recordedAudioUrl"
@@ -56,7 +56,7 @@
       </div>
     </main>
 
-    <footer class="bg-white py-12 px-section border-t border-border">
+    <footer class="bg-primary py-12 px-section border-t border-border">
       <div class="max-w-[1280px] mx-auto text-center">
         <p class="text-[16px] font-medium text-text-tertiary">Pronunciation Detection System v0.1.0</p>
       </div>
@@ -166,8 +166,8 @@ onUnmounted(() => {
 
 body {
   font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #ffffff;
+  background: #f5f5f5;
   min-height: 100vh;
-  color: #000000;
+  color: #2d2d2d;
 }
 </style>

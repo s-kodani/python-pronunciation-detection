@@ -7,10 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        'border': '#e6e6e6',
-        'text-secondary': '#828282',
-        'text-tertiary': '#454545',
-        'bg-section': '#f7f7f7',
+        'border': '#d0d0d0',
+        'text-secondary': '#6b6b6b',
+        'text-tertiary': '#4a4a4a',
+        'bg-section': '#fafafa',
+        'bg-primary': '#f5f5f5',
+        'bg-card': '#ffffff',
+        'text-primary': '#2d2d2d',
+        'button-primary': '#6b6b6b',
+        'button-hover': '#5a5a5a',
       },
       fontFamily: {
         sans: ['Inter', 'Noto Sans JP', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
