@@ -73,9 +73,10 @@ async def process_uploaded_audio(
         if temp_file_path:
             files_to_delete.add(temp_file_path)
 
-        # converted_file_pathを削除対象に追加（実際に使用された場合のみ）
-        # WAVファイルの場合は空ファイルなので削除しない
-        if converted_file_path and actual_converted_path == converted_file_path:
+        # converted_file_pathを削除対象に追加
+        # WAV入力時はconvert_to_wavがinput_pathを返すためactual_converted_path!=converted_file_pathとなるが、
+        # その場合converted_file_pathは空の一時ファイルとして残るため、常に削除する
+        if converted_file_path:
             files_to_delete.add(converted_file_path)
 
         # 収集したファイルを削除
@@ -150,9 +151,10 @@ async def process_speaker_audio(
         if temp_speaker_path:
             files_to_delete.add(temp_speaker_path)
 
-        # temp_speaker_wav_pathを削除対象に追加（実際に使用された場合のみ）
-        # WAVファイルの場合は空ファイルなので削除しない
-        if temp_speaker_wav_path and actual_speaker_wav_path == temp_speaker_wav_path:
+        # temp_speaker_wav_pathを削除対象に追加
+        # WAV入力時はconvert_to_wavがinput_pathを返すためactual_speaker_wav_path!=temp_speaker_wav_pathとなるが、
+        # その場合temp_speaker_wav_pathは空の一時ファイルとして残るため、常に削除する
+        if temp_speaker_wav_path:
             files_to_delete.add(temp_speaker_wav_path)
 
         # 収集したファイルを削除
