@@ -15,7 +15,7 @@ def synthesize_speech(
     speaker_wav: str,
     output_path: str,
     language: str = "en",
-    model_name: str = "tts_models/multilingual/multi-dataset/xtts_v2"
+    model_name: str = "tts_models/multilingual/multi-dataset/your_tts"
 ) -> str:
     """
     テキストと話者情報を使って音声合成し、ファイルに保存する
@@ -25,7 +25,7 @@ def synthesize_speech(
         speaker_wav: 話者情報を含む音声ファイルのパス
         output_path: 出力ファイルのパス
         language: 言語コード（デフォルト: "en"）
-        model_name: TTSモデル名（デフォルト: "xtts_v2"）
+        model_name: TTSモデル名（デフォルト: "your_tts"）
 
     Returns:
         生成された音声ファイルのパス

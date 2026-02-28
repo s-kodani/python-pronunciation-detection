@@ -148,8 +148,8 @@ def main():
     accuracy = compare_phonemes(expected_ph, actual_ph)
     print(f"Final Pronunciation Accuracy: {accuracy:.2f}%")
 
-    # 音声合成モデルを読み込む（XTT v2モデル、CPUで実行）
-    tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to("cpu")
+    # 音声合成モデルを読み込む（your_ttsモデル、CPUで実行）
+    tts = TTS("tts_models/multilingual/multi-dataset/your_tts").to("cpu")
     # 文字起こしされたテキストと録音音声の話者情報を使って音声合成し、ファイルに保存
     tts.tts_to_file(text=text, speaker_wav=RECORDED_AUDIO_PATH, language="en", file_path=TRANSCRIBED_AUDIO_PATH)
 
