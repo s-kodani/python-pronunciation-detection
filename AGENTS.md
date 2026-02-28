@@ -338,3 +338,28 @@ npm run test
 ---
 
 このドキュメントは、プロジェクトの進化に合わせて更新してください。
+
+## Cursor Cloud specific instructions
+
+### System dependencies
+
+The following system packages must be installed (not managed by `uv` or `npm`):
+
+- `espeak-ng` — required by `phonemizer` for text-to-phoneme conversion
+- `portaudio19-dev` — required by `pyaudio` (CLI recording); also needed for `uv sync` to build the `pyaudio` wheel
+- `ffmpeg` — required by `pydub` for audio format conversion (pre-installed on most VMs)
+
+### Running services
+
+| Service | Command | Port | Notes |
+|---------|---------|------|-------|
+| Backend (FastAPI) | `uv run uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000` | 8000 | Run from repo root (`/workspace`). Swagger UI at `/docs`. |
+| Frontend (Vite) | `npm run dev -- --host 0.0.0.0` | 5173 | Run from `frontend/`. Proxies `/api` to backend on port 8000. |
+
+### Gotchas
+
+- **No lint/test tooling exists yet.** The repo has no pytest config, no eslint, no ruff. Use `uv run python -c "from backend.app.main import app"` for a quick backend import check and `npm run build` (in `frontend/`) for a frontend build check.
+- **First API call is slow.** Whisper/Allosaurus/TTS models download on first use (~140 MB to ~1.8 GB each). The health endpoint (`GET /api/health`) works immediately without model downloads.
+- **Python version**: `uv` auto-installs CPython 3.11 into `.venv` (specified by `requires-python = ">=3.11"` in `pyproject.toml`); the system Python 3.12 is not used.
+- **Allosaurus SyntaxWarning** (`"is" with a literal`) appears on import — this is harmless and comes from the upstream library.
+- **MFA service** (in `mfa/`) is optional and requires Docker. It is not integrated with the main API pipeline.
