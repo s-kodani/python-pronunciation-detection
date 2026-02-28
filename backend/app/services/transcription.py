@@ -4,9 +4,11 @@ Whisperを使用して音声ファイルをテキストに変換
 """
 import whisper
 from typing import Optional
-import logging
 
-logger = logging.getLogger(__name__)
+from ..utils.exceptions import TranscriptionError
+from ..core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def transcribe_audio(audio_file: str, model_name: str = "base", language: str = "en") -> str:
@@ -22,7 +24,7 @@ def transcribe_audio(audio_file: str, model_name: str = "base", language: str = 
         文字起こしされたテキスト
 
     Raises:
-        Exception: 文字起こし処理中にエラーが発生した場合
+        TranscriptionError: 文字起こし処理中にエラーが発生した場合
     """
     try:
         logger.info(f"Loading Whisper model: {model_name}")
@@ -32,6 +34,11 @@ def transcribe_audio(audio_file: str, model_name: str = "base", language: str = 
         text = result["text"].strip()
         logger.info(f"Transcription completed: {text}")
         return text
+    except TranscriptionError:
+        raise
     except Exception as e:
         logger.error(f"Error during transcription: {str(e)}")
-        raise Exception(f"Transcription failed: {str(e)}") from e
+        raise TranscriptionError(
+            message="Transcription failed",
+            details=str(e)
+        ) from e

@@ -1,26 +1,32 @@
 <template>
-  <div id="app">
-    <header class="app-header">
-      <h1>🎤 発音検出システム</h1>
-      <p class="subtitle">AIを活用した発音評価ツール</p>
+  <div id="app" class="min-h-screen flex flex-col bg-bg-primary">
+    <header class="bg-bg-primary py-14 px-section">
+      <div class="max-w-[1280px] mx-auto">
+        <h1 class="text-[48px] font-semibold leading-normal text-text-primary tracking-[-0.96px] mb-6">
+          発音検出システム
+        </h1>
+        <p class="text-[24px] font-normal leading-[1.5] text-text-secondary">
+          AIを活用した発音評価ツール
+        </p>
+      </div>
     </header>
 
-    <main class="app-main">
-      <div class="container">
-        <section class="recording-section">
-          <h2>音声録音</h2>
+    <main class="flex-1 py-12 px-section">
+      <div class="max-w-[1280px] mx-auto">
+        <section class="bg-bg-card border border-border rounded-[12px] p-8 mb-8">
+          <h2 class="text-[48px] font-semibold leading-normal text-text-primary tracking-[-0.96px] mb-8">音声録音</h2>
           <AudioRecorder @recording-complete="handleRecordingComplete" />
         </section>
 
-        <section class="evaluation-section" v-if="recordedBlob">
-          <h2>発音評価</h2>
-          <div class="evaluation-controls">
+        <section class="bg-bg-card border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
+          <h2 class="text-[48px] font-semibold leading-normal text-text-primary tracking-[-0.96px] mb-8">発音評価</h2>
+          <div class="mb-6">
             <button
               @click="evaluatePronunciation"
               :disabled="isEvaluating"
-              class="btn btn-evaluate"
+              class="bg-button-primary text-white px-6 py-3 rounded-[8px] text-base font-medium shadow-button hover:bg-button-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {{ isEvaluating ? '評価中...' : '🚀 発音評価を実行' }}
+              {{ isEvaluating ? '評価中...' : '発音評価を実行' }}
             </button>
           </div>
 
@@ -31,9 +37,9 @@
           />
         </section>
 
-        <section class="audio-section" v-if="recordedBlob">
-          <h2>音声再生</h2>
-          <div class="audio-players">
+        <section class="bg-bg-card border border-border rounded-[12px] p-8 mb-8" v-if="recordedBlob">
+          <h2 class="text-[48px] font-semibold leading-normal text-text-primary tracking-[-0.96px] mb-8">音声再生</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <AudioPlayer
               :audio-url="recordedAudioUrl"
               title="録音音声"
@@ -50,119 +56,105 @@
       </div>
     </main>
 
-    <footer class="app-footer">
-      <p>Pronunciation Detection System v0.1.0</p>
+    <footer class="bg-bg-primary py-12 px-section border-t border-border">
+      <div class="max-w-[1280px] mx-auto text-center">
+        <p class="text-[16px] font-medium text-text-tertiary">Pronunciation Detection System v0.1.0</p>
+      </div>
     </footer>
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import AudioRecorder from './components/AudioRecorder.vue'
 import ResultDisplay from './components/ResultDisplay.vue'
 import AudioPlayer from './components/AudioPlayer.vue'
 import { evaluatePronunciation as evaluatePronunciationAPI, synthesizeSpeech } from './services/api'
+import { useErrorHandler } from './composables/useErrorHandler'
+import type { EvaluateResponse } from './types'
 
-export default {
-  name: 'App',
-  components: {
-    AudioRecorder,
-    ResultDisplay,
-    AudioPlayer,
-  },
-  setup() {
-    const recordedBlob = ref(null)
-    const evaluationResult = ref(null)
-    const isEvaluating = ref(false)
-    const evaluationError = ref(null)
-    const synthesizedAudioUrl = ref(null)
+const { error: evaluationError, handleError, clearError } = useErrorHandler()
 
-    const recordedAudioUrl = computed(() => {
-      if (recordedBlob.value) {
-        return URL.createObjectURL(recordedBlob.value)
-      }
-      return null
-    })
+const recordedBlob = ref<Blob | null>(null)
+const evaluationResult = ref<EvaluateResponse | null>(null)
+const isEvaluating = ref<boolean>(false)
+const synthesizedAudioUrl = ref<string | null>(null)
 
-    const handleRecordingComplete = (blob) => {
-      // 以前の合成音声URLを解放
-      if (synthesizedAudioUrl.value) {
-        URL.revokeObjectURL(synthesizedAudioUrl.value)
-      }
-      recordedBlob.value = blob
-      evaluationResult.value = null
-      evaluationError.value = null
-      synthesizedAudioUrl.value = null
-    }
+const recordedAudioUrl = computed<string | null>(() => {
+  if (recordedBlob.value) {
+    return URL.createObjectURL(recordedBlob.value)
+  }
+  return null
+})
 
-    const evaluatePronunciation = async () => {
-      if (!recordedBlob.value) {
-        evaluationError.value = '録音音声がありません'
-        return
-      }
-
-      isEvaluating.value = true
-      evaluationError.value = null
-      evaluationResult.value = null
-
-      try {
-        // BlobをFileオブジェクトに変換（WebM形式のまま）
-        const audioFile = new File([recordedBlob.value], 'recording.webm', {
-          type: 'audio/webm',
-        })
-
-        // 発音評価を実行
-        const result = await evaluatePronunciationAPI(audioFile)
-        evaluationResult.value = result
-
-        // 音声合成を実行（オプション）
-        if (result.transcribed_text) {
-          try {
-            // 音声合成を実行（Blobを直接取得）
-            const audioBlob = await synthesizeSpeech(result.transcribed_text, audioFile)
-            console.log('Speech synthesis completed')
-
-            // 生成された音声をURLに変換
-            synthesizedAudioUrl.value = URL.createObjectURL(audioBlob)
-          } catch (ttsError) {
-            console.warn('Speech synthesis failed:', ttsError)
-            // 音声合成の失敗は評価結果に影響しない
-          }
-        }
-      } catch (error) {
-        evaluationError.value = error.message || '評価中にエラーが発生しました'
-        console.error('Evaluation error:', error)
-      } finally {
-        isEvaluating.value = false
-      }
-    }
-
-    onMounted(() => {
-      console.log('Pronunciation Detection System initialized')
-    })
-
-    onUnmounted(() => {
-      // クリーンアップ: オブジェクトURLを解放
-      if (synthesizedAudioUrl.value) {
-        URL.revokeObjectURL(synthesizedAudioUrl.value)
-      }
-      if (recordedBlob.value) {
-        URL.revokeObjectURL(recordedAudioUrl.value)
-      }
-    })
-
-    return {
-      recordedBlob,
-      evaluationResult,
-      isEvaluating,
-      evaluationError,
-      synthesizedAudioUrl,
-      recordedAudioUrl,
-      handleRecordingComplete,
-      evaluatePronunciation,
-    }
-  },
+const handleRecordingComplete = (blob: Blob): void => {
+  // 以前の合成音声URLを解放
+  if (synthesizedAudioUrl.value) {
+    URL.revokeObjectURL(synthesizedAudioUrl.value)
+  }
+  recordedBlob.value = blob
+  evaluationResult.value = null
+  clearError()
+  synthesizedAudioUrl.value = null
 }
+
+const evaluatePronunciation = async (): Promise<void> => {
+  if (!recordedBlob.value) {
+    evaluationError.value = '録音音声がありません'
+    return
+  }
+
+  isEvaluating.value = true
+  clearError()
+  evaluationResult.value = null
+
+  try {
+    // BlobをFileオブジェクトに変換（WebM形式のまま）
+    const audioFile = new File([recordedBlob.value], 'recording.webm', {
+      type: 'audio/webm',
+    })
+
+    // 発音評価を実行
+    const result = await evaluatePronunciationAPI(audioFile)
+    evaluationResult.value = result
+
+    // 音声合成を実行（オプション）
+    if (result.transcribed_text) {
+      try {
+        // 音声合成を実行（Blobを直接取得）
+        const audioBlob = await synthesizeSpeech(result.transcribed_text, audioFile)
+
+        // 生成された音声をURLに変換
+        synthesizedAudioUrl.value = URL.createObjectURL(audioBlob)
+      } catch (ttsError) {
+        // 音声合成の失敗は評価結果に影響しない
+        if (import.meta.env.DEV) {
+          console.warn('Speech synthesis failed:', ttsError)
+        }
+      }
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    isEvaluating.value = false
+  }
+}
+
+onMounted(() => {
+  if (import.meta.env.DEV) {
+    console.log('Pronunciation Detection System initialized')
+  }
+})
+
+onUnmounted(() => {
+  // クリーンアップ: オブジェクトURLを解放
+  if (synthesizedAudioUrl.value) {
+    URL.revokeObjectURL(synthesizedAudioUrl.value)
+  }
+  if (recordedBlob.value && recordedAudioUrl.value) {
+    URL.revokeObjectURL(recordedAudioUrl.value)
+  }
+})
 </script>
 
 <style>
@@ -173,121 +165,9 @@ export default {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f5f5f5;
   min-height: 100vh;
-  color: #333;
-}
-
-#app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-header {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px 20px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.app-header h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.subtitle {
-  color: #666;
-  font-size: 1.1em;
-}
-
-.app-main {
-  flex: 1;
-  padding: 40px 20px;
-}
-
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-section h2 {
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 1.8em;
-  border-bottom: 3px solid #667eea;
-  padding-bottom: 10px;
-}
-
-.evaluation-controls {
-  margin-bottom: 20px;
-}
-
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-evaluate {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  width: 100%;
-}
-
-.btn-evaluate:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.btn-evaluate:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.audio-players {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.app-footer {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  text-align: center;
-  color: #666;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-  .app-header h1 {
-    font-size: 2em;
-  }
-
-  section {
-    padding: 20px;
-  }
-
-  .audio-players {
-    grid-template-columns: 1fr;
-  }
+  color: #2d2d2d;
 }
 </style>

@@ -1,23 +1,23 @@
 <template>
-  <div class="result-display" v-if="result">
-    <h3>評価結果</h3>
+  <div class="border border-border rounded-[12px] bg-bg-card p-8" v-if="result">
+    <h3 class="mt-0 text-[48px] font-semibold leading-normal text-text-primary tracking-[-0.96px] mb-8">評価結果</h3>
 
-    <div class="result-section">
-      <h4>📝 文字起こし</h4>
-      <div class="result-box">
-        <p class="transcribed-text">{{ result.transcribed_text }}</p>
+    <div class="mb-8">
+      <h4 class="text-[24px] font-medium text-text-primary mb-4">文字起こし</h4>
+      <div class="p-6 bg-bg-section rounded-[8px] border border-border">
+        <p class="m-0 text-[24px] font-medium text-text-primary leading-[1.5]">{{ result.transcribed_text }}</p>
       </div>
     </div>
 
-    <div class="result-section">
-      <h4>🎯 発音精度</h4>
-      <div class="accuracy-display">
-        <div class="accuracy-circle" :class="accuracyClass">
-          <span class="accuracy-value">{{ result.accuracy.toFixed(1) }}%</span>
+    <div class="mb-8">
+      <h4 class="text-[24px] font-medium text-text-primary mb-6">発音精度</h4>
+      <div class="flex flex-col items-center gap-6">
+        <div class="w-[120px] h-[120px] rounded-full flex items-center justify-center text-white border-4 border-bg-card shadow-button" :class="accuracyClass">
+          <span class="text-[28px] font-bold">{{ result.accuracy.toFixed(1) }}%</span>
         </div>
-        <div class="accuracy-bar">
+        <div class="w-full h-8 bg-border rounded-full overflow-hidden">
           <div
-            class="accuracy-fill"
+            class="h-full transition-all duration-500 ease-in-out rounded-full"
             :style="{ width: `${result.accuracy}%` }"
             :class="accuracyClass"
           ></div>
@@ -25,245 +25,58 @@
       </div>
     </div>
 
-    <div class="result-section">
-      <h4>🔤 音素比較</h4>
-      <div class="phoneme-comparison">
-        <div class="phoneme-item">
-          <label>期待される音素:</label>
-          <div class="phoneme-text expected">{{ result.expected_phonemes }}</div>
+    <div class="mb-8">
+      <h4 class="text-[24px] font-medium text-text-primary mb-6">音素比較</h4>
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[16px] font-medium text-text-primary">期待される音素:</label>
+          <div class="p-4 rounded-[8px] font-mono text-[16px] break-all bg-bg-card border border-border text-text-primary">
+            {{ result.expected_phonemes }}
+          </div>
         </div>
-        <div class="phoneme-item">
-          <label>実際の音素:</label>
-          <div class="phoneme-text actual">{{ result.actual_phonemes }}</div>
+        <div class="flex flex-col gap-2">
+          <label class="text-[16px] font-medium text-text-primary">実際の音素:</label>
+          <div class="p-4 rounded-[8px] font-mono text-[16px] break-all bg-bg-card border border-border text-text-primary">
+            {{ result.actual_phonemes }}
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div v-else-if="loading" class="loading">
-    <div class="spinner"></div>
-    <p>評価中...</p>
+  <div v-else-if="loading" class="flex flex-col items-center justify-center p-12 gap-4">
+    <div class="w-12 h-12 border-4 border-border border-t-button-primary rounded-full animate-spin"></div>
+    <p class="text-[16px] font-normal text-text-primary">評価中...</p>
   </div>
 
-  <div v-else-if="error" class="error-message">
-    <p>❌ {{ error }}</p>
+  <div v-else-if="error" class="p-6 bg-bg-section border border-border rounded-[8px] mt-6">
+    <p class="m-0 text-[16px] font-normal text-text-primary">❌ {{ error }}</p>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { computed } from 'vue'
+import type { EvaluateResponse } from '../types'
 
-export default {
-  name: 'ResultDisplay',
-  props: {
-    result: {
-      type: Object,
-      default: null,
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    error: {
-      type: String,
-      default: null,
-    },
-  },
-  setup(props) {
-    const accuracyClass = computed(() => {
-      if (!props.result) return ''
-      const accuracy = props.result.accuracy
-      if (accuracy >= 80) return 'excellent'
-      if (accuracy >= 60) return 'good'
-      if (accuracy >= 40) return 'fair'
-      return 'poor'
-    })
-
-    return {
-      accuracyClass,
-    }
-  },
+interface Props {
+  result?: EvaluateResponse | null
+  loading?: boolean
+  error?: string | null
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  result: null,
+  loading: false,
+  error: null,
+})
+
+const accuracyClass = computed<string>(() => {
+  if (!props.result) return ''
+  const accuracy = props.result.accuracy
+  // ライトグレー基調に合わせて、グレー系のカラーに変更
+  if (accuracy >= 80) return 'bg-button-primary'
+  if (accuracy >= 60) return 'bg-button-primary opacity-80'
+  if (accuracy >= 40) return 'bg-button-primary opacity-60'
+  return 'bg-button-primary opacity-40'
+})
 </script>
-
-<style scoped>
-.result-display {
-  padding: 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  background: #ffffff;
-  margin-top: 20px;
-}
-
-.result-display h3 {
-  margin-top: 0;
-  color: #333;
-  border-bottom: 2px solid #4CAF50;
-  padding-bottom: 10px;
-}
-
-.result-section {
-  margin-bottom: 25px;
-}
-
-.result-section h4 {
-  color: #555;
-  margin-bottom: 10px;
-}
-
-.result-box {
-  padding: 15px;
-  background: #f5f5f5;
-  border-radius: 5px;
-  border-left: 4px solid #2196F3;
-}
-
-.transcribed-text {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
-  font-weight: 500;
-}
-
-.accuracy-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-.accuracy-circle {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: white;
-  border: 5px solid white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.accuracy-circle.excellent {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-}
-
-.accuracy-circle.good {
-  background: linear-gradient(135deg, #8BC34A, #7CB342);
-}
-
-.accuracy-circle.fair {
-  background: linear-gradient(135deg, #FFC107, #FFA000);
-}
-
-.accuracy-circle.poor {
-  background: linear-gradient(135deg, #FF5722, #E64A19);
-}
-
-.accuracy-value {
-  font-size: 28px;
-}
-
-.accuracy-bar {
-  width: 100%;
-  height: 30px;
-  background: #e0e0e0;
-  border-radius: 15px;
-  overflow: hidden;
-  position: relative;
-}
-
-.accuracy-fill {
-  height: 100%;
-  transition: width 0.5s ease;
-  border-radius: 15px;
-}
-
-.accuracy-fill.excellent {
-  background: linear-gradient(90deg, #4CAF50, #45a049);
-}
-
-.accuracy-fill.good {
-  background: linear-gradient(90deg, #8BC34A, #7CB342);
-}
-
-.accuracy-fill.fair {
-  background: linear-gradient(90deg, #FFC107, #FFA000);
-}
-
-.accuracy-fill.poor {
-  background: linear-gradient(90deg, #FF5722, #E64A19);
-}
-
-.phoneme-comparison {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.phoneme-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.phoneme-item label {
-  font-weight: bold;
-  color: #666;
-  font-size: 14px;
-}
-
-.phoneme-text {
-  padding: 12px;
-  border-radius: 5px;
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
-  word-break: break-all;
-}
-
-.phoneme-text.expected {
-  background: #e3f2fd;
-  border-left: 4px solid #2196F3;
-  color: #1976D2;
-}
-
-.phoneme-text.actual {
-  background: #fff3e0;
-  border-left: 4px solid #FF9800;
-  color: #F57C00;
-}
-
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  gap: 15px;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #4CAF50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-message {
-  padding: 15px;
-  background: #ffebee;
-  border-left: 4px solid #f44336;
-  border-radius: 4px;
-  color: #c62828;
-  margin-top: 20px;
-}
-</style>
