@@ -19,7 +19,7 @@
       <button
         v-if="recordedBlob && !isRecording"
         @click="resetRecording"
-        class="bg-bg-section text-primary px-6 py-3 rounded-[8px] text-base font-medium shadow-button hover:bg-border transition-colors"
+        class="bg-bg-section text-text-primary px-6 py-3 rounded-[8px] text-base font-medium shadow-button hover:bg-border transition-colors"
       >
         リセット
       </button>
@@ -27,20 +27,20 @@
 
     <div v-if="isRecording" class="flex items-center gap-3 p-4 bg-bg-section rounded-[8px] mb-6">
       <div class="w-3 h-3 bg-button-primary rounded-full animate-pulse"></div>
-      <span class="text-[16px] font-medium text-primary">録音中... {{ formatTime(recordingTime) }}</span>
+      <span class="text-[16px] font-medium text-text-primary">録音中... {{ formatTime(recordingTime) }}</span>
     </div>
 
     <div v-if="recordedBlob && !isRecording" class="mt-6">
-      <p class="text-[16px] font-medium text-primary mb-3">録音完了: {{ formatTime(recordingDuration) }}</p>
+      <p class="text-[16px] font-medium text-text-primary mb-3">録音完了: {{ formatTime(recordingDuration) }}</p>
       <audio :src="audioUrl" controls class="w-full"></audio>
     </div>
 
     <div v-if="!isSupported" class="mt-6 p-4 bg-bg-section border border-border rounded-[8px]">
-      <p class="text-[16px] font-normal text-primary">⚠️ お使いのブラウザは音声録音をサポートしていません。</p>
+      <p class="text-[16px] font-normal text-text-primary">⚠️ お使いのブラウザは音声録音をサポートしていません。</p>
     </div>
 
     <div v-if="error" class="mt-6 p-4 bg-bg-section border border-border rounded-[8px]">
-      <p class="text-[16px] font-normal text-primary">❌ {{ error }}</p>
+      <p class="text-[16px] font-normal text-text-primary">❌ {{ error }}</p>
     </div>
   </div>
 </template>

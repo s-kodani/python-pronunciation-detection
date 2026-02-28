@@ -1,8 +1,8 @@
 <template>
-  <div class="border border-border rounded-[12px] bg-card p-8">
+  <div class="border border-border rounded-[12px] bg-bg-card p-8">
     <div v-if="audioUrl" class="flex flex-col gap-4">
       <div>
-        <h4 class="m-0 text-[24px] font-medium text-primary mb-2">{{ title }}</h4>
+        <h4 class="m-0 text-[24px] font-medium text-text-primary mb-2">{{ title }}</h4>
       </div>
       <audio
         ref="audioElement"

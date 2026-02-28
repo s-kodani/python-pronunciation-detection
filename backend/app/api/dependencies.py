@@ -59,6 +59,8 @@ async def process_uploaded_audio(
         # WAVファイルの場合はinput_pathが返されるため、converted_file_pathは空ファイルになる
         yield (temp_file_path, actual_converted_path)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error processing uploaded audio: {str(e)}")
         raise HTTPException(
