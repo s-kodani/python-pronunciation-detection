@@ -26,8 +26,8 @@ trap cleanup SIGINT SIGTERM
 
 # バックエンドを起動
 echo "バックエンドを起動中..."
-cd "$SCRIPT_DIR/backend"
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
+cd "$SCRIPT_DIR"
+uv run uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 PIDS+=($BACKEND_PID)
 echo "バックエンド起動完了 (PID: $BACKEND_PID)"
